@@ -1,0 +1,12 @@
+# IDE files
+.vscode/
+.cache/
+compile_commands.json
+
+# xmake files
+.xmake/
+build/
+
+# Build outputs
+**.o
+**.out
