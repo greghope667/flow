@@ -14,13 +14,15 @@
 #include <SDL_opengl.h>
 #endif
 
+#include "app.h"
+
 // This example can also compile and run with Emscripten! See 'Makefile.emscripten' for details.
 #ifdef __EMSCRIPTEN__
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
 
 // Main code
-int main(int, char**)
+int main(int argc, char** argv)
 {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
@@ -99,6 +101,7 @@ int main(int, char**)
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    flow::application app{argc, argv};
 
     // Main loop
     bool done = false;
@@ -167,6 +170,8 @@ int main(int, char**)
                 show_another_window = false;
             ImGui::End();
         }
+
+        app.render();
 
         // Rendering
         ImGui::Render();

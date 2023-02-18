@@ -7,6 +7,9 @@ compile_commands.json
 .xmake/
 build/
 
+# s7 files are large - don't track for now
+lib/s7*
+
 # Build outputs
 **.o
 **.out
