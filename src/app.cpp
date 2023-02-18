@@ -1,7 +1,7 @@
 #include "app.h"
+#include "code_editor.h"
 
 #include <imgui.h>
-#include <misc/cpp/imgui_stdlib.h>
 
 using namespace flow;
 
@@ -86,17 +86,10 @@ void application::render()
 
     static auto s7 = s7_init();
     static auto _ = add_resource_path(s7, "lib/s7");
+    static auto editor = code_editor(s7);
 
     ImGui::Begin("Scheme");
-    static std::string scheme_code;
-    static std::string scheme_result;
-    ImGui::InputTextMultiline("SchemeText", &scheme_code);
-    if (ImGui::Button("Run")) {
-        auto result = s7_eval_c_string(s7, scheme_code.c_str());
-        scheme_result = pp(s7, result);
-        fflush(stdout);
-    }
-    ImGui::TextWrapped("%s", scheme_result.c_str());
+    editor.render();
     ImGui::End();
 
     imnodes();
