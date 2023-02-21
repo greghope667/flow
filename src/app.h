@@ -6,7 +6,7 @@ namespace flow {
 
 struct application
 {
-    application(int argc, char** argv) {};
+    application(int argc, char** argv);
     void render();
 };
 

@@ -1,5 +1,6 @@
 #include "app.h"
 #include "code_editor.h"
+#include "scheme.h"
 
 #include <imgui.h>
 
@@ -48,34 +49,10 @@ static void imnodes() {
     ImGui::End();
 }
 
-#include <s7.h>
-static const char *pp(s7_scheme *sc, s7_pointer obj) /* (pp obj) */
+application::application(int, char**)
 {
-  return(s7_string(
-          s7_eval_c_string_with_environment(sc,
-            "(catch #t                         \
-               (lambda ()                      \
-                 (require write.scm)           \
-                 (pp obj))                     \
-               (lambda (type info)             \
-                 (apply format #f info)))",
-	   s7_inlet(sc, s7_list(sc, 1, s7_cons(sc, s7_make_symbol(sc, "obj"), obj))))));
-}
-
-#include <filesystem>
-static bool add_resource_path(s7_scheme* sc, const char* path)
-{
-    auto curr = std::filesystem::current_path();
-    auto full_path = curr;
-    for (;;) {
-        full_path = curr / path;
-        if (std::filesystem::exists(full_path)) break;
-        if (not curr.has_parent_path()) return false;
-        curr = curr.parent_path();
-    }
-    s7_symbol_set_value(sc, s7_make_symbol(sc, "*load-path*"),
-    s7_append(sc, s7_name_to_value(sc, "*load-path*"), s7_list(sc, 1, s7_make_string(sc, full_path.c_str()))));
-    return true;
+    scheme_init();
+    add_resource_path("lib/s7");
 }
 
 void application::render()
@@ -84,9 +61,7 @@ void application::render()
     ImGui::Text("TODO");
     ImGui::End();
 
-    static auto s7 = s7_init();
-    static auto _ = add_resource_path(s7, "lib/s7");
-    static auto editor = code_editor(s7);
+    static auto editor = code_editor();
 
     ImGui::Begin("Scheme");
     editor.render();

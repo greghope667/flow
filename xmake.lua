@@ -5,7 +5,7 @@ set_languages("c18", "c++20")
 add_rules("mode.debug", "mode.release")
 
 -- C/C++ flags
-add_cxflags("-march=native")
+add_cxflags("-march=native", "-Wall", "-Wextra")
 if is_mode("debug") then
     add_cxflags("-g3", "-Og")
 end

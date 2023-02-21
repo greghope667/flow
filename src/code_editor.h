@@ -8,12 +8,11 @@ namespace flow {
 
 struct code_editor {
 
-    code_editor(s7_scheme* s7) : code_(), result_(), s7_(s7) {}
+    code_editor() : code_(), result_() {}
 
     bool auto_exec_;
     std::string code_;
     std::string result_;
-    s7_scheme* s7_;
 
     void render();
 private:
