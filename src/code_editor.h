@@ -1,10 +1,15 @@
 #pragma once
 
+#include <functional>
 #include <string>
 
 struct s7_scheme;
 
 namespace flow {
+
+using renderer = std::function<void()>;
+
+renderer editor();
 
 struct code_editor {
 

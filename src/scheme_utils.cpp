@@ -1,4 +1,4 @@
-#include "scheme.h"
+#include "scheme_utils.h"
 
 #include <s7.h>
 #include <filesystem>
@@ -17,6 +17,12 @@ void flow::scheme_free()
 {
     if (s7)
         s7_free(s7);
+}
+
+void flow::scheme_abort_execution()
+{
+    if (s7)
+        s7_quit(s7);
 }
 
 scheme_value::scheme_value(s7_pointer val) noexcept
@@ -51,7 +57,7 @@ const char* flow::pretty_print(s7_pointer obj)
     return s7_string(s7_eval_c_string_with_environment(s7, pp, env));
 }
 
-bool flow::add_resource_path(const char* path)
+bool flow::scheme_add_resource_path(const char* path)
 {
     auto curr = std::filesystem::current_path();
     auto full_path = curr;

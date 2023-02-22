@@ -1,6 +1,6 @@
 #include "app.h"
 #include "code_editor.h"
-#include "scheme.h"
+#include "scheme_utils.h"
 
 #include <imgui.h>
 
@@ -13,10 +13,11 @@ struct Node {
 
 #include <imnodes.h>
 static void imnodes() {
-    static auto _ = []{ ImNodes::CreateContext(); return true; }();
     static auto node = Node{.id = 8, .value = 12};
+    static auto ctx = ImNodes::EditorContextCreate();
 
     ImGui::Begin("Node Editor");
+    ImNodes::EditorContextSet(ctx);
     ImNodes::BeginNodeEditor();
 
     ImNodes::BeginNode(node.id);
@@ -52,7 +53,7 @@ static void imnodes() {
 application::application(int, char**)
 {
     scheme_init();
-    add_resource_path("lib/s7");
+    scheme_add_resource_path("lib/s7");
 }
 
 void application::render()
@@ -61,11 +62,17 @@ void application::render()
     ImGui::Text("TODO");
     ImGui::End();
 
-    static auto editor = code_editor();
+    static auto old_editor = code_editor();
+    static auto new_editor = editor();
+
+    new_editor();
 
     ImGui::Begin("Scheme");
-    editor.render();
+    old_editor.render();
     ImGui::End();
 
     imnodes();
 }
+
+void application::close()
+{}

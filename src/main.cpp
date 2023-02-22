@@ -14,6 +14,7 @@
 #include <SDL_opengl.h>
 #endif
 
+#include <imnodes.h>
 #include "app.h"
 
 // This example can also compile and run with Emscripten! See 'Makefile.emscripten' for details.
@@ -68,6 +69,7 @@ int main(int argc, char** argv)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImNodes::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -185,9 +187,12 @@ int main(int argc, char** argv)
     EMSCRIPTEN_MAINLOOP_END;
 #endif
 
+    app.close();
+
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
+    ImNodes::DestroyContext();
     ImGui::DestroyContext();
 
     SDL_GL_DeleteContext(gl_context);

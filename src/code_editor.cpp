@@ -3,12 +3,30 @@
 #include <chrono>
 #include <iostream>
 #include <imgui.h>
+#include <imnodes.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <s7.h>
-#include "scheme.h"
+#include "flow.h"
+#include "scheme_utils.h"
 
 
 using namespace flow;
+
+renderer flow::editor()
+{
+    auto ctx = ImNodes::EditorContextCreate();
+    return [s=scene(), ctx] {
+        ImGui::Begin("A Node Editor");
+        ImNodes::EditorContextSet(ctx);
+        ImNodes::BeginNodeEditor();
+
+        // for (auto& f: s.all_functions()) ...
+
+        ImNodes::MiniMap();
+        ImNodes::EndNodeEditor();
+        ImGui::End();
+    };
+}
 
 void code_editor::render()
 {

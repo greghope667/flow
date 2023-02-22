@@ -16,14 +16,15 @@ namespace flow {
 extern s7_scheme* s7;
 void scheme_init();
 void scheme_free();
+void scheme_abort_execution();
 
 
 // Some basic utilites
 const char* pretty_print(s7_pointer obj);
-bool add_resource_path(const char* path);
+bool scheme_add_resource_path(const char* path);
 
 
-// Big RAII container - protects value from gc
+// RAII container - protects value from gc
 class scheme_value
 {
     using sv = scheme_value;
