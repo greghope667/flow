@@ -1,5 +1,6 @@
 #include "app.h"
 #include "code_editor.h"
+#include "flow.h"
 #include "scheme_utils.h"
 
 #include <imgui.h>
@@ -54,6 +55,7 @@ application::application(int, char**)
 {
     scheme_init();
     scheme_add_resource_path("lib/s7");
+    test_scene();
 }
 
 void application::render()

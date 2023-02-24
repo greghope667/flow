@@ -17,34 +17,27 @@ namespace flow {
  */
 
 // Hack for distinct int types
-enum class in_port_id_t : uint32_t;
-enum class out_port_id_t : uint32_t;
+enum class port_id_t : uint32_t;
 enum class function_id_t : uint32_t;
 enum class pipe_id_t : uint32_t;
 
-struct in_port {
+struct port {
     std::vector<pipe_id_t> pipes;
     std::string name;
     function_id_t parent;
-    bool ready;
-};
-
-struct out_port {
-    std::vector<pipe_id_t> pipes;
-    std::string name;
-    function_id_t parent;
+    bool is_input;
 };
 
 struct function {
     std::string code;
-    std::vector<in_port_id_t> inputs;
-    std::vector<out_port_id_t> outputs;
+    std::vector<port_id_t> inputs;
+    std::vector<port_id_t> outputs;
 };
 
 struct pipe {
     scheme_value data;
-    out_port_id_t source;
-    in_port_id_t dest;
+    port_id_t source;
+    port_id_t dest;
 };
 
 // The main resource holder
@@ -59,26 +52,49 @@ public:
     void remove_function(function_id_t);
     const auto& all_functions() const { return functions_; }
 
-    in_port_id_t add_input(function_id_t parent);
-    in_port& get_input(in_port_id_t);
-    void remove_input(in_port_id_t);
+    port_id_t add_input(function_id_t parent);
+    port_id_t add_output(function_id_t parent);
+    port& get_port(port_id_t);
+    void remove_port(port_id_t);
 
-    out_port_id_t add_output(function_id_t parent);
-    out_port& get_output(out_port_id_t);
-    void remove_output(out_port_id_t);
-
-    pipe_id_t add_pipe(out_port_id_t src, in_port_id_t dst);
+    pipe_id_t add_pipe(port_id_t src, port_id_t dst);
     pipe& get_pipe(pipe_id_t);
     void remove_pipe(pipe_id_t);
 
     bool exec_step();
+    void exec(function& func);
+
+private:
+    bool is_pipe_full(const pipe& p);
+    bool is_input_ready(const port& input);
+    bool is_output_ready(const port& output);
+    bool is_function_ready(const function& func);
 
 private:
     std::vector<function> functions_;
-    std::vector<in_port> inputs_;
-    std::vector<out_port> outputs_;
+    std::vector<port> ports_;
     std::vector<pipe> pipes_;
 };
 
+inline void test_scene()
+{
+    scene x{};
+    auto f1id = x.add_function();
+    x.get_function(f1id).code = "(define x 7)";
+
+    auto f2id = x.add_function();
+    x.get_function(f2id).code = "(define y (+ x 3))";
+
+    auto f1outid = x.add_output(f1id);
+    x.get_port(f1outid).name = "x";
+
+    auto f2inid = x.add_input(f2id);
+    x.get_port(f2inid).name = "x";
+
+    x.add_pipe(f1outid, f2inid);
+
+    x.exec(x.get_function(f1id));
+    x.exec(x.get_function(f2id));
+}
 
 }

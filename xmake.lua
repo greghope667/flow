@@ -7,8 +7,10 @@ add_rules("mode.debug", "mode.release")
 -- C/C++ flags
 add_cxflags("-march=native", "-Wall", "-Wextra")
 if is_mode("debug") then
-    add_cxflags("-g3", "-Og")
+    add_cxflags("-g3", "-O0")
 end
+
+san = true
 
 target("flow")
     set_kind("binary")
@@ -35,6 +37,12 @@ target("flow")
 
     -- Other Libraries
     add_packages("sdl2", "opengl")
+
+    -- Sanitisers
+    if san then
+        add_cxflags("-fsanitize=address", "-fsanitize=undefined")
+        add_links("asan", "ubsan")
+    end
 
     -- Main
     add_files("src/*.cpp")

@@ -27,6 +27,7 @@ void flow::scheme_abort_execution()
 
 scheme_value::scheme_value(s7_pointer val) noexcept
 {
+    ptr_ = val;
     loc_ = s7_gc_protect(s7, val);
 }
 
