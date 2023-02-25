@@ -104,6 +104,7 @@ int main(int argc, char** argv)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     flow::application app{argc, argv};
+    io.IniFilename = NULL;
 
     // Main loop
     bool done = false;

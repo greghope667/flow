@@ -2,6 +2,9 @@
 
 #include <s7.h>
 #include <filesystem>
+#include <unordered_set>
+
+// #define FLOW_GC_TRACE 
 
 using namespace flow;
 
@@ -25,16 +28,36 @@ void flow::scheme_abort_execution()
         s7_quit(s7);
 }
 
+std::unordered_set<void*> gc_protected{};
+
 scheme_value::scheme_value(s7_pointer val) noexcept
 {
     ptr_ = val;
-    loc_ = s7_gc_protect(s7, val);
+    loc_ = 0;
+
+    if (ptr_) {
+        loc_ = s7_gc_protect(s7, val);
+#ifdef FLOW_GC_TRACE
+        gc_protected.emplace(ptr_);
+        fprintf(stderr, "GC Protect: %p = %li\n", ptr_, loc_);
+#endif
+    }
 }
 
 scheme_value::~scheme_value() noexcept
 {
-    if (ptr_)
+    if (ptr_) {
+#ifdef FLOW_GC_TRACE
+        gc_protected.extract(ptr_);
+        fprintf(stderr, "GC Release: %p = %li\n", ptr_, loc_);
+        fprintf(stderr, "[ ");
+        for (auto& p: gc_protected) {
+            fprintf(stderr, "%p ", p);
+        }
+        fprintf(stderr, "]\n");
+#endif
         s7_gc_unprotect_at(s7, loc_);
+    }
     ptr_ = nullptr;
     loc_ = 0;
 }

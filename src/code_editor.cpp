@@ -1,5 +1,6 @@
 #include "code_editor.h"
 
+#include <cassert>
 #include <chrono>
 #include <iostream>
 #include <imgui.h>
@@ -12,18 +13,96 @@
 
 using namespace flow;
 
+static void render_editor_function(scene& s, function_id_t id)
+{
+    auto& func = s.get_function(id);
+    ImNodes::BeginNode(int(id));
+
+    ImNodes::BeginNodeTitleBar();
+    ImGui::TextUnformatted("lambda");
+    ImNodes::EndNodeTitleBar();
+
+    ImGui::PushItemWidth(120.0f);
+    for (auto input_id: func.inputs) {
+        auto& input = s.get_port(input_id);
+        assert(input.parent == id);
+        assert(input.is_input);
+
+        ImNodes::BeginInputAttribute(int(input_id));
+        ImGui::InputText("", &input.name);
+        ImNodes::EndInputAttribute();
+    }
+
+    for (auto output_id: func.outputs) {
+        auto& output = s.get_port(output_id);
+        assert(output.parent == id);
+        assert(not output.is_input);
+
+        ImNodes::BeginOutputAttribute(int(output_id));
+        ImGui::InputText("", &output.name);
+        ImNodes::EndInputAttribute();
+    }
+
+    ImGui::InputTextMultiline("Code", &func.code);
+    ImGui::PopItemWidth();
+
+    if (ImGui::Button("Add input")) {
+        s.add_input(id);
+    }
+
+    if (ImGui::Button("Add output")) {
+        s.add_output(id);
+    }
+
+    if (ImGui::Button("Run")) {
+        s.exec(func);
+    }
+
+    ImNodes::EndNode();
+}
+
 renderer flow::editor()
 {
     auto ctx = ImNodes::EditorContextCreate();
-    return [s=scene(), ctx] {
+    return [s=scene(), ctx] () mutable {
         ImGui::Begin("A Node Editor");
+
+        if (ImGui::Button("Add Function")) {
+            s.add_function();
+        }
+
         ImNodes::EditorContextSet(ctx);
         ImNodes::BeginNodeEditor();
 
-        // for (auto& f: s.all_functions()) ...
+        auto max_func_id = s.all_functions().size();
+        for (size_t i=0; i<max_func_id; i++) {
+            render_editor_function(s, function_id_t(i));
+        }
+
+        auto max_link_id = s.all_pipes().size();
+        for (size_t i=0; i<max_link_id; i++) {
+            auto& [data, src, dest] = s.get_pipe(pipe_id_t(i));
+            ImNodes::Link(int(i), int(src), int(dest));
+        }
 
         ImNodes::MiniMap();
         ImNodes::EndNodeEditor();
+
+        int start, end;
+        if (ImNodes::IsLinkCreated(&start, &end)) {
+            s.add_pipe(port_id_t(start), port_id_t(end));
+        }
+
+        int hovered;
+        if (ImNodes::IsLinkHovered(&hovered)) {
+            auto& pipe = s.get_pipe(pipe_id_t(hovered));
+            if (pipe.data) {
+                ImGui::SetTooltip("%s\n", pipe.data.pretty_print());
+            } else {
+                ImGui::SetTooltip("[empty]");
+            }
+        }
+
         ImGui::End();
     };
 }

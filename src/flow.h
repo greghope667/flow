@@ -60,9 +60,11 @@ public:
     pipe_id_t add_pipe(port_id_t src, port_id_t dst);
     pipe& get_pipe(pipe_id_t);
     void remove_pipe(pipe_id_t);
+    const auto& all_pipes() const { return pipes_; }
+
 
     bool exec_step();
-    void exec(function& func);
+    std::string exec(function& func);
 
 private:
     bool is_pipe_full(const pipe& p);
