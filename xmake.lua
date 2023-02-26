@@ -1,18 +1,16 @@
 add_requires("sdl2", "opengl", {system=true})
 set_languages("c18", "c++20")
 
-
-add_rules("mode.debug", "mode.release")
-
 -- C/C++ flags
 add_cxflags("-march=native", "-Wall", "-Wextra")
-if is_mode("debug") then
-    add_cxflags("-g3", "-O0")
-end
 
-san = true
+target("s7")
+    set_kind("shared")
+    add_files("lib/s7/s7.c")
 
 target("flow")
+    add_rules("mode.debug", "mode.releasedbg", "mode.asan", "mode.ubsan")
+
     set_kind("binary")
 
     -- Output compile commands
@@ -33,16 +31,10 @@ target("flow")
 
     -- Scheme (s7)
     add_includedirs("lib/s7")
-    add_files("lib/s7/s7.c")
+    add_deps("s7")
 
     -- Other Libraries
     add_packages("sdl2", "opengl")
-
-    -- Sanitisers
-    if san then
-        add_cxflags("-fsanitize=address", "-fsanitize=undefined")
-        add_links("asan", "ubsan")
-    end
 
     -- Main
     add_files("src/*.cpp")

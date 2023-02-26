@@ -88,7 +88,7 @@ bool flow::scheme_add_resource_path(const char* path)
     for (;;) {
         full_path = curr / path;
         if (std::filesystem::exists(full_path)) break;
-        if (not curr.has_parent_path()) return false;
+        if (not curr.has_relative_path()) return false;
         curr = curr.parent_path();
     }
 

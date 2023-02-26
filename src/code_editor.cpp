@@ -13,10 +13,21 @@
 
 using namespace flow;
 
-static void render_editor_function(scene& s, function_id_t id)
+static void render_input_code(std::string& code)
+{
+    ImGui::InputTextMultiline("", &code, ImVec2(0,50), ImGuiInputTextFlags_AllowTabInput);
+}
+
+static void render_editor_function(scene& s, function_id_t id, bool reposition = false)
 {
     auto& func = s.get_function(id);
     ImNodes::BeginNode(int(id));
+
+    if (reposition) {
+        ImGui::GetWindowSize();
+        auto [x,y] = ImGui::GetWindowSize();
+        ImNodes::SetNodeEditorSpacePos(int(id), ImVec2(x/3,y/3)); 
+    }
 
     ImNodes::BeginNodeTitleBar();
     ImGui::TextUnformatted("lambda");
@@ -43,7 +54,7 @@ static void render_editor_function(scene& s, function_id_t id)
         ImNodes::EndInputAttribute();
     }
 
-    ImGui::InputTextMultiline("Code", &func.code);
+    render_input_code(func.code);
     ImGui::PopItemWidth();
 
     if (ImGui::Button("Add input")) {
@@ -67,8 +78,9 @@ renderer flow::editor()
     return [s=scene(), ctx] () mutable {
         ImGui::Begin("A Node Editor");
 
+        int added_function_id = -1;
         if (ImGui::Button("Add Function")) {
-            s.add_function();
+            added_function_id = int(s.add_function());
         }
 
         ImNodes::EditorContextSet(ctx);
@@ -76,16 +88,19 @@ renderer flow::editor()
 
         auto max_func_id = s.all_functions().size();
         for (size_t i=0; i<max_func_id; i++) {
-            render_editor_function(s, function_id_t(i));
+            render_editor_function(s, function_id_t(i), added_function_id == int(i));
         }
 
         auto max_link_id = s.all_pipes().size();
         for (size_t i=0; i<max_link_id; i++) {
             auto& [data, src, dest] = s.get_pipe(pipe_id_t(i));
+
+            if (data) ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(255, 40, 40, 255));
             ImNodes::Link(int(i), int(src), int(dest));
+            if (data) ImNodes::PopColorStyle();
         }
 
-        ImNodes::MiniMap();
+        ImNodes::MiniMap(0.2f, ImNodesMiniMapLocation_TopRight);
         ImNodes::EndNodeEditor();
 
         int start, end;
