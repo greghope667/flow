@@ -64,7 +64,7 @@ public:
 
 
     bool exec_step();
-    std::string exec(function& func);
+    std::string exec(function& func, bool prints = false);
 
 private:
     bool is_pipe_full(const pipe& p);
@@ -97,6 +97,26 @@ inline void test_scene()
 
     x.exec(x.get_function(f1id));
     x.exec(x.get_function(f2id));
+}
+
+inline void test_undefined()
+{
+    scene x{};
+    auto f1id = x.add_function();
+    x.get_function(f1id).code = "3";
+
+    auto f2id = x.add_function();
+
+    auto f1outid = x.add_output(f1id);
+    x.get_port(f1outid).name = "x";
+
+    auto f2inid = x.add_input(f2id);
+    x.get_port(f2inid).name = "x";
+
+    x.add_pipe(f1outid, f2inid);
+
+    x.exec(x.get_function(f1id));
+    x.exec(x.get_function(f2id)); // Expect warning here for missing input
 }
 
 }

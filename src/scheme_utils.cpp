@@ -3,6 +3,7 @@
 #include <s7.h>
 #include <filesystem>
 #include <unordered_set>
+#include <cstdlib>
 
 // #define FLOW_GC_TRACE 
 
@@ -10,10 +11,19 @@ using namespace flow;
 
 s7_scheme* flow::s7 = nullptr;
 
+static s7_pointer notify(s7_scheme*, s7_pointer val)
+{
+    std::string v = pretty_print(val);
+    v = "notify-send \"" + v + "\"";
+    system(v.c_str());
+    return val;
+}
+
 void flow::scheme_init()
 {
     if (not s7)
         s7 = s7_init();
+    s7_define_function(s7, "notify", notify, 1, 0, false, "Help text");
 }
 
 void flow::scheme_free()

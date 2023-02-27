@@ -61,7 +61,7 @@ flow::pipe& scene::get_pipe(pipe_id_t idx) {
 
 #define weak_assert(cond,msg) (cond) || printf("Warning %s:%i, %s\n", __FILE__, __LINE__, (msg))
 
-std::string scene::exec(function& func)
+std::string scene::exec(function& func, bool prints)
 {
     scheme_value defs = s7_list(s7, 0);
 
@@ -95,30 +95,78 @@ std::string scene::exec(function& func)
 
     scheme_value env = s7_inlet(s7, defs.get());
 
-    printf("Before: %s\n", env.pretty_print());
+    if (prints)
+        printf("Before: %s\n", env.pretty_print());
 
     scheme_value result = s7_eval_c_string_with_environment(s7, func.code.c_str(), env.get());
-    printf("result = %s\n", result.pretty_print());
-    printf("After: %s\n", env.pretty_print());
-    fflush(stdout);
+    if (prints) {
+        printf("result = %s\n", result.pretty_print());
+        printf("After: %s\n", env.pretty_print());
+        fflush(stdout);
+    }
 
     for (auto output_id: func.outputs) {
         auto& output = get_port(output_id);
         assert(not output.is_input);
         assert(&func == &get_function(output.parent));
 
+        scheme_value output_data;
+
+        if (output.name.empty()) {
+            output_data = result;
+        } else {
+            auto sym = s7_make_symbol(s7, output.name.c_str());
+            auto val = s7_symbol_local_value(s7, sym, env.get());
+            if (s7_is_eq(val, s7_undefined(s7))) {
+                output_data = nullptr;
+            } else {
+                output_data = val;
+            }
+        }
+
         for (auto link_id: output.pipes) {
             auto& link = get_pipe(link_id);
             assert(link.source == output_id);
             weak_assert(not link.data, "overwriting output data");
 
-            if (output.name.empty()) {
-                link.data = result;
-            } else {
-                link.data = s7_eval_c_string_with_environment(s7, output.name.c_str(), env.get());
-            }
+            link.data = output_data;
         }
     }
 
     return result.pretty_print();
+}
+
+#include <algorithm>
+bool scene::exec_step() {
+    auto has_data = [&](auto pipe_id) {
+        return bool(get_pipe(pipe_id).data);
+    };
+
+    auto can_run_safely = [&](auto& func){
+        for (auto input_id: func.inputs) {
+            auto& input = get_port(input_id);
+
+            if (not std::ranges::any_of(input.pipes, has_data)) {
+                return false;
+            }
+        }
+
+        for (auto output_id: func.outputs) {
+            auto& output = get_port(output_id);
+
+            if (std::ranges::any_of(output.pipes, has_data)) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    for (auto& func: functions_) {
+        if (can_run_safely(func)) {
+            exec(func);
+            return true;
+        }
+    }
+    return false;
 }

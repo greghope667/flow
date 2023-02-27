@@ -18,16 +18,10 @@ static void render_input_code(std::string& code)
     ImGui::InputTextMultiline("", &code, ImVec2(0,50), ImGuiInputTextFlags_AllowTabInput);
 }
 
-static void render_editor_function(scene& s, function_id_t id, bool reposition = false)
+static void render_editor_function(scene& s, function_id_t id)
 {
     auto& func = s.get_function(id);
     ImNodes::BeginNode(int(id));
-
-    if (reposition) {
-        ImGui::GetWindowSize();
-        auto [x,y] = ImGui::GetWindowSize();
-        ImNodes::SetNodeEditorSpacePos(int(id), ImVec2(x/3,y/3)); 
-    }
 
     ImNodes::BeginNodeTitleBar();
     ImGui::TextUnformatted("lambda");
@@ -66,7 +60,7 @@ static void render_editor_function(scene& s, function_id_t id, bool reposition =
     }
 
     if (ImGui::Button("Run")) {
-        s.exec(func);
+        s.exec(func, true);
     }
 
     ImNodes::EndNode();
@@ -78,9 +72,14 @@ renderer flow::editor()
     return [s=scene(), ctx] () mutable {
         ImGui::Begin("A Node Editor");
 
-        int added_function_id = -1;
         if (ImGui::Button("Add Function")) {
-            added_function_id = int(s.add_function());
+            auto added_function_id = s.add_function();
+            auto [x,y] = ImGui::GetWindowSize();
+            ImNodes::SetNodeEditorSpacePos(int(added_function_id), ImVec2(x/3,y/3)); 
+        }
+
+        if (ImGui::Button("Step")) {
+            s.exec_step();
         }
 
         ImNodes::EditorContextSet(ctx);
@@ -88,7 +87,7 @@ renderer flow::editor()
 
         auto max_func_id = s.all_functions().size();
         for (size_t i=0; i<max_func_id; i++) {
-            render_editor_function(s, function_id_t(i), added_function_id == int(i));
+            render_editor_function(s, function_id_t(i));
         }
 
         auto max_link_id = s.all_pipes().size();
