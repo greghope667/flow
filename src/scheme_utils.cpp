@@ -38,7 +38,9 @@ void flow::scheme_abort_execution()
         s7_quit(s7);
 }
 
+#ifdef FLOW_GC_TRACE
 std::unordered_set<void*> gc_protected{};
+#endif
 
 scheme_value::scheme_value(s7_pointer val) noexcept
 {
@@ -77,18 +79,21 @@ const char* scheme_value::pretty_print() const noexcept
     return ::flow::pretty_print(ptr_);
 }
 
+static s7_pointer prepare_pretty_print()
+{
+    s7_eval_c_string(s7, "(require write.scm)");
+    return s7_eval_c_string(s7, 
+        "(lambda (obj)"
+        "  (catch #t"
+        "    (lambda () (pp obj))"
+        "    (lambda (type info)"
+        "      (apply format #f info))))");
+}
+
 const char* flow::pretty_print(s7_pointer obj)
 {
-    const char* pp = 
-            "(catch #t                         \
-               (lambda ()                      \
-                 (require write.scm)           \
-                 (pp obj))                     \
-               (lambda (type info)             \
-                 (apply format #f info)))";
-    auto env = s7_inlet(s7, s7_list(s7, 1, s7_cons(s7, s7_make_symbol(s7, "obj"), obj)));
-
-    return s7_string(s7_eval_c_string_with_environment(s7, pp, env));
+    static scheme_value pp = prepare_pretty_print();
+    return s7_string(s7_call(s7, pp.get(), s7_cons(s7, obj, s7_nil(s7))));
 }
 
 bool flow::scheme_add_resource_path(const char* path)

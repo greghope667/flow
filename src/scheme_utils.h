@@ -30,7 +30,7 @@ class scheme_value
     using sv = scheme_value;
 public:
     scheme_value(s7_pointer) noexcept;
-    scheme_value() noexcept : ptr_(nullptr), loc_(0) {};
+    constexpr scheme_value() noexcept : ptr_(nullptr), loc_(0) {};
 
     s7_pointer get() noexcept { return ptr_; };
     const char* pretty_print() const noexcept;

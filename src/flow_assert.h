@@ -4,7 +4,7 @@
 #ifdef FLOW_DISABLE_RUNTIME_WARNINGS
 #define warn_assert(cond,msg)
 #else
-#define warn_assert(cond,msg) (void)(cond) || \
+#define warn_assert(cond,msg) (cond) || \
     printf("Warning %s:%i, %s\n", __FILE__, __LINE__, (msg))
 #endif
 

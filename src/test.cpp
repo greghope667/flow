@@ -28,9 +28,12 @@ void test_scene()
 
     auto pipeid = x.add_pipe(f1outid, f2inid);
 
-    TEST_CHECK(x.exec(x.get_function(f1id)) == "7");
-    TEST_CHECK(x.get_pipe(pipeid).data);
-    TEST_CHECK(x.exec(x.get_function(f2id)) == "10");
+    /* Enough loops for GC to kick in */
+    for (int i=0; i<100; i++) {
+	    TEST_CHECK(x.exec(x.get_function(f1id)) == "7");
+	    TEST_CHECK(x.get_pipe(pipeid).data);
+	    TEST_CHECK(x.exec(x.get_function(f2id)) == "10");
+    }
 }
 
 void test_undefined()

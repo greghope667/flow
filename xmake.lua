@@ -1,5 +1,5 @@
 add_requires("sdl2", "opengl", {system=true})
-set_languages("c18", "c++20")
+set_languages("c17", "c++20")
 
 -- C/C++ flags
 add_cxflags("-march=native", "-Wall", "-Wextra")
@@ -52,3 +52,12 @@ target("test")
 
     add_defines("FLOW_DISABLE_RUNTIME_WARNINGS")
     add_files("src/scheme_utils.cpp", "src/flow.cpp", "src/test.cpp")
+
+target("nrepl")
+    set_kind("binary")
+    set_languages("gnu99")
+
+    add_deps("s7")
+    add_links("notcurses-core", "m", "dl")
+
+    add_files("lib/s7/nrepl.c")
