@@ -16,9 +16,6 @@ application::application(int, char**)
 {
     scheme_init();
     scheme_add_resource_path("lib/s7");
-    for (int i=0; i<10; i++)
-        test_scene();
-    test_undefined();
 }
 
 void application::render()

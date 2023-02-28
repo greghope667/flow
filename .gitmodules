@@ -4,3 +4,6 @@
 [submodule "lib/imnodes"]
 	path = lib/imnodes
 	url = https://github.com/Nelarius/imnodes
+[submodule "lib/acutest"]
+	path = lib/acutest
+	url = https://github.com/mity/acutest

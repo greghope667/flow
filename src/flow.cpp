@@ -1,6 +1,6 @@
 #include "flow.h"
 
-#include <cassert>
+#include "flow_assert.h"
 #include <s7.h>
 
 using namespace flow;
@@ -41,8 +41,8 @@ port& scene::get_port(port_id_t idx) {
 }
 
 pipe_id_t scene::add_pipe(port_id_t src, port_id_t dst) {
-    assert(get_port(src).is_input == false);
-    assert(get_port(dst).is_input == true);
+    throw_assert(get_port(src).is_input == false, "port should be output type");
+    throw_assert(get_port(dst).is_input == true, "port should be input type");
 
     pipe p = {
         .source = src,
@@ -59,30 +59,28 @@ flow::pipe& scene::get_pipe(pipe_id_t idx) {
     return pipes_.at(int(idx));
 }
 
-#define weak_assert(cond,msg) (cond) || printf("Warning %s:%i, %s\n", __FILE__, __LINE__, (msg))
-
 std::string scene::exec(function& func, bool prints)
 {
     scheme_value defs = s7_list(s7, 0);
 
     for (auto input_id: func.inputs) {
         auto& input = get_port(input_id);
-        assert(input.is_input);
-        assert(&func == &get_function(input.parent));
+        throw_assert(input.is_input, "input port marked as output");
+        throw_assert(&func == &get_function(input.parent), "bad parent");
 
         scheme_value arg_value{};
 
         for (auto link_id: input.pipes) {
             auto& link = get_pipe(link_id);
-            assert(link.dest == input_id);
+            throw_assert(link.dest == input_id, "pipe target mismatch");
 
             if (link.data) {
-                weak_assert(not arg_value, "multipe data for same input");
+                warn_assert(not arg_value, "multipe data for same input");
                 arg_value = std::move(link.data);
             }
         }
 
-        weak_assert(arg_value, "missing data for input");
+        warn_assert(arg_value, "missing data for input");
 
         if (arg_value)
             defs = s7_cons(s7, 
@@ -91,7 +89,7 @@ std::string scene::exec(function& func, bool prints)
             );
     }
 
-    assert(s7_is_proper_list(s7, defs.get()));
+    throw_assert(s7_is_proper_list(s7, defs.get()), "arguments must be a list");
 
     scheme_value env = s7_inlet(s7, defs.get());
 
@@ -107,8 +105,8 @@ std::string scene::exec(function& func, bool prints)
 
     for (auto output_id: func.outputs) {
         auto& output = get_port(output_id);
-        assert(not output.is_input);
-        assert(&func == &get_function(output.parent));
+        throw_assert(not output.is_input, "output port marked as input");
+        throw_assert(&func == &get_function(output.parent), "bad parent");
 
         scheme_value output_data;
 
@@ -126,8 +124,8 @@ std::string scene::exec(function& func, bool prints)
 
         for (auto link_id: output.pipes) {
             auto& link = get_pipe(link_id);
-            assert(link.source == output_id);
-            weak_assert(not link.data, "overwriting output data");
+            throw_assert(link.source == output_id, "pipe source target");
+            warn_assert(not link.data, "overwriting output data");
 
             link.data = output_data;
         }
