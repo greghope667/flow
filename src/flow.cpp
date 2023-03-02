@@ -83,7 +83,7 @@ std::string scene::exec(function& func, bool prints)
         warn_assert(arg_value, "missing data for input");
 
         if (arg_value)
-            defs = s7_cons(s7, 
+            defs = s7_cons(s7,
                 s7_cons(s7, s7_make_symbol(s7, input.name.c_str()), arg_value.get()),
                 defs.get()
             );

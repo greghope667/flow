@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "scheme_utils.h"
+#include "vector_pool.h"
 
 namespace flow {
 
