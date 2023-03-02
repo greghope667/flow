@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <cstdlib>
 
-// #define FLOW_GC_TRACE 
+// #define FLOW_GC_TRACE
 
 using namespace flow;
 
@@ -82,7 +82,7 @@ const char* scheme_value::pretty_print() const noexcept
 static s7_pointer prepare_pretty_print()
 {
     s7_eval_c_string(s7, "(require write.scm)");
-    return s7_eval_c_string(s7, 
+    return s7_eval_c_string(s7,
         "(lambda (obj)"
         "  (catch #t"
         "    (lambda () (pp obj))"
@@ -92,8 +92,8 @@ static s7_pointer prepare_pretty_print()
 
 const char* flow::pretty_print(s7_pointer obj)
 {
-    static scheme_value pp = prepare_pretty_print();
-    return s7_string(s7_call(s7, pp.get(), s7_cons(s7, obj, s7_nil(s7))));
+    static s7_pointer pp = prepare_pretty_print();
+    return s7_string(s7_call(s7, pp, s7_cons(s7, obj, s7_nil(s7))));
 }
 
 bool flow::scheme_add_resource_path(const char* path)
@@ -108,8 +108,8 @@ bool flow::scheme_add_resource_path(const char* path)
     }
 
     s7_symbol_set_value(s7, s7_make_symbol(s7, "*load-path*"),
-        s7_append(s7, 
-            s7_name_to_value(s7, "*load-path*"), 
+        s7_append(s7,
+            s7_name_to_value(s7, "*load-path*"),
             s7_list(s7, 1, s7_make_string(s7, full_path.c_str()))
     ));
 

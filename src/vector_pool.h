@@ -16,6 +16,7 @@ struct vector_pool
         int sz = spaces_.size();
         for (int i=0; i<sz; i++) {
             if (spaces_.at(i)) {
+                spaces_.at(i) = false;
                 return i;
             }
         }

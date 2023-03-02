@@ -37,6 +37,7 @@ void test_scene()
 	    TEST_ASSERT(x.get_pipe(pipeid).data);
 	    TEST_ASSERT(x.exec(x.get_function(f2id)) == "10");
     }
+    flow::scheme_free();
 }
 
 void test_reversed_pipe()
@@ -52,6 +53,7 @@ void test_reversed_pipe()
     TEST_EXCEPTION(x.add_pipe(f2inid, f1outid), std::exception);
     TEST_EXCEPTION(x.add_pipe(f1outid, f1outid), std::exception);
     TEST_EXCEPTION(x.add_pipe(f2inid, f2inid), std::exception);
+    flow::scheme_free();
 }
 
 
@@ -75,6 +77,7 @@ void test_undefined()
     TEST_CHECK(x.exec(x.get_function(f1id)) == "3");
     TEST_CHECK(not x.get_pipe(pipeid).data);
     x.exec(x.get_function(f2id));
+    flow::scheme_free();
 }
 
 void test_pool_insert_remove()
@@ -112,6 +115,28 @@ void test_pool_iteration()
     TEST_CHECK(required == remaining);
 }
 
+void test_scene_removal()
+{
+    flow::scene x{};
+    auto f1id = x.add_function();
+    auto f2id = x.add_function();
+    auto f1outid = x.add_output(f1id);
+    auto f2inid = x.add_input(f2id);
+    auto pipeid = x.add_pipe(f1outid, f2inid);
+
+    TEST_CHECK(ranges::to_vector(x.all_pipes()).size() == 1);
+    x.remove_pipe(pipeid);
+    TEST_CHECK(ranges::to_vector(x.all_pipes()).size() == 0);
+    x.add_pipe(f1outid, f2inid);
+    TEST_CHECK(ranges::to_vector(x.all_pipes()).size() == 1);
+    x.remove_port(f1outid);
+    TEST_CHECK(ranges::to_vector(x.all_pipes()).size() == 0);
+    TEST_CHECK(ranges::to_vector(x.all_functions()).size() == 2);
+    x.remove_function(f1id);
+    TEST_CHECK(ranges::to_vector(x.all_functions()).size() == 1);
+    TEST_CHECK(ranges::to_vector(x.all_pipes()).size() == 0);
+}
+
 TEST_LIST = {
     { "trivial", test_empty },
     { "simple scene", test_scene },
@@ -119,5 +144,6 @@ TEST_LIST = {
     { "undefined data", test_undefined },
     { "pool insertion", test_pool_insert_remove },
     { "pool iteration", test_pool_iteration },
+    { "scene item removal", test_scene_removal },
     { nullptr, nullptr },
 };

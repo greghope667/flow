@@ -69,6 +69,54 @@ flow::pipe& scene::get_pipe(pipe_id_t idx) {
     return pipes_.at(int(idx));
 }
 
+void scene::remove_function(function_id_t idx) {
+    auto& function = get_function(idx);
+
+    // Remove children
+    for (auto port_id: function.inputs) {
+        remove_port(port_id);
+    }
+    for (auto port_id: function.outputs) {
+        remove_port(port_id);
+    }
+
+    // Remove self
+    functions_.release_object(int(idx));
+}
+
+void scene::remove_port(port_id_t idx) {
+    auto& port = get_port(idx);
+
+    // Remove children
+    for (auto pipe_id: port.pipes) {
+        remove_pipe(pipe_id);
+    }
+
+    // Unassign from parent
+    auto& parent = get_function(port.parent);
+    if (port.is_input) {
+        std::erase(parent.inputs, idx);
+    } else {
+        std::erase(parent.outputs, idx);
+    }
+
+    // Remove self
+    ports_.release_object(int(idx));
+}
+
+void scene::remove_pipe(pipe_id_t idx) {
+    auto& pipe = get_pipe(idx);
+
+    // Unassign from parents
+    auto& src = get_port(pipe.source);
+    auto& dst = get_port(pipe.dest);
+    std::erase(src.pipes, idx);
+    std::erase(dst.pipes, idx);
+
+    // Remove self
+    pipes_.release_object(int(idx));
+}
+
 std::string scene::exec(function& func, bool prints)
 {
     scheme_value defs = s7_list(s7, 0);
