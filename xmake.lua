@@ -1,4 +1,4 @@
-add_requires("sdl2", "opengl", {system=true})
+add_requires("sdl2", "opengl", "range-v3", {system=true})
 set_languages("c17", "c++20")
 
 -- C/C++ flags
@@ -35,7 +35,7 @@ target("flow")
     add_deps("s7")
 
     -- Other Libraries
-    add_packages("sdl2", "opengl")
+    add_packages("sdl2", "opengl", "range-v3")
 
     -- Main
     add_files("src/*.cpp|test.cpp")
@@ -43,6 +43,8 @@ target("flow")
 target("test")
     set_kind("binary")
     add_cxflags("-g", "-O0")
+
+    add_packages("range-v3")
 
     -- Scheme (s7)
     add_includedirs("lib/s7")

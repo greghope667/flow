@@ -1,5 +1,7 @@
 #include <acutest.h>
 #include <algorithm>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/transform.hpp>
 #include "flow.h"
 
 void test_empty(void)
@@ -81,17 +83,11 @@ void test_pool_iteration()
     pool.at(pool.acquire_object()) = '4';
     pool.release_object(mid);
 
-    auto vi = [&]() -> std::vector<int> {
-        auto vi = pool.valid_indexes();
-        return {vi.begin(), vi.end()};
-    }();
-
+    auto vi = ranges::to_vector(pool.valid_indexes());
     TEST_CHECK(vi.size() == 3);
 
-    std::vector<char> remaining;
-    for (int i: vi) {
-        remaining.push_back(pool.at(i));
-    }
+    auto remaining = ranges::to_vector(vi | ranges::views::transform([&](int i){return pool.at(i);}));
+    TEST_CHECK(remaining.size() == 3);
 
     // Ordering not class requirement - run sort so we can test equality
     std::sort(remaining.begin(), remaining.end());

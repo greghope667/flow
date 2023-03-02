@@ -1,7 +1,8 @@
 #pragma once
 
-#include <ranges>
 #include "flow_assert.h"
+#include <range/v3/view/iota.hpp>
+#include <range/v3/view/filter.hpp>
 
 namespace flow {
 
@@ -39,8 +40,8 @@ struct vector_pool
     auto valid_indexes() const {
         auto alive = [this](int i){ return not spaces_.at(i); };
 
-        namespace vw = std::ranges::views;
-        return vw::iota(0, int(spaces_.size())) | vw::filter(alive);
+        namespace v = ranges::views;
+        return v::iota(0, int(spaces_.size())) | v::filter(alive);
     }
 
     auto& vector() {
