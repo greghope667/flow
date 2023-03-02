@@ -3,6 +3,7 @@
 #include "flow_assert.h"
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/filter.hpp>
+#include <range/v3/view/transform.hpp>
 
 namespace flow {
 
@@ -42,6 +43,11 @@ struct vector_pool
 
         namespace v = ranges::views;
         return v::iota(0, int(spaces_.size())) | v::filter(alive);
+    }
+
+    auto valid_elements() const {
+        namespace v = ranges::views;
+        return valid_indexes() | v::transform([&](int i){return vec_.at(i);});
     }
 
     auto& vector() {

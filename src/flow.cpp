@@ -6,8 +6,7 @@
 using namespace flow;
 
 function_id_t scene::add_function() {
-    functions_.emplace_back();
-    return function_id_t(functions_.size() - 1);
+    return function_id_t(functions_.acquire_object());
 }
 
 function& scene::get_function(function_id_t idx) {
@@ -16,23 +15,31 @@ function& scene::get_function(function_id_t idx) {
 
 port_id_t scene::add_input(function_id_t parent) {
     port p  ={
+        .pipes = {},
+        .name = "",
         .parent = parent,
         .is_input = true,
     };
-    ports_.push_back(p);
-    auto id = port_id_t(ports_.size() - 1);
+
+    auto id = port_id_t(ports_.acquire_object());
+    ports_.at(int(id)) = std::move(p);
     get_function(parent).inputs.push_back(id);
+
     return id;
 }
 
 port_id_t scene::add_output(function_id_t parent) {
     port p  ={
+        .pipes = {},
+        .name = "",
         .parent = parent,
         .is_input = false,
     };
-    ports_.push_back(p);
-    auto id = port_id_t(ports_.size() - 1);
+
+    auto id = port_id_t(ports_.acquire_object());
+    ports_.at(int(id)) = std::move(p);
     get_function(parent).outputs.push_back(id);
+
     return id;
 }
 
@@ -45,13 +52,16 @@ pipe_id_t scene::add_pipe(port_id_t src, port_id_t dst) {
     throw_assert(get_port(dst).is_input == true, "port should be input type");
 
     pipe p = {
+        .data = nullptr,
         .source = src,
         .dest = dst,
     };
-    pipes_.push_back(p);
-    auto id = pipe_id_t(pipes_.size() - 1);
+
+    auto id = pipe_id_t(pipes_.acquire_object());
+    pipes_.at(int(id)) = std::move(p);
     get_port(src).pipes.push_back(id);
     get_port(dst).pipes.push_back(id);
+
     return id;
 }
 
@@ -160,7 +170,8 @@ bool scene::exec_step() {
         return true;
     };
 
-    for (auto& func: functions_) {
+    for (auto id: functions_.valid_indexes()) {
+        auto& func = get_function(function_id_t(id));
         if (can_run_safely(func)) {
             exec(func);
             return true;

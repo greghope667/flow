@@ -39,6 +39,22 @@ void test_scene()
     }
 }
 
+void test_reversed_pipe()
+{
+    setup_scheme_env();
+    flow::scene x{};
+
+    auto f1id = x.add_function();
+    auto f2id = x.add_function();
+    auto f1outid = x.add_output(f1id);
+    auto f2inid = x.add_input(f2id);
+
+    TEST_EXCEPTION(x.add_pipe(f2inid, f1outid), std::exception);
+    TEST_EXCEPTION(x.add_pipe(f1outid, f1outid), std::exception);
+    TEST_EXCEPTION(x.add_pipe(f2inid, f2inid), std::exception);
+}
+
+
 void test_undefined()
 {
     setup_scheme_env();
@@ -99,6 +115,7 @@ void test_pool_iteration()
 TEST_LIST = {
     { "trivial", test_empty },
     { "simple scene", test_scene },
+    { "reversed pipe", test_reversed_pipe },
     { "undefined data", test_undefined },
     { "pool insertion", test_pool_insert_remove },
     { "pool iteration", test_pool_iteration },

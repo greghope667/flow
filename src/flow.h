@@ -51,7 +51,7 @@ public:
     function_id_t add_function();
     function& get_function(function_id_t);
     void remove_function(function_id_t);
-    const auto& all_functions() const { return functions_; }
+    auto all_functions() const { return functions_.valid_indexes(); }
 
     port_id_t add_input(function_id_t parent);
     port_id_t add_output(function_id_t parent);
@@ -61,22 +61,22 @@ public:
     pipe_id_t add_pipe(port_id_t src, port_id_t dst);
     pipe& get_pipe(pipe_id_t);
     void remove_pipe(pipe_id_t);
-    const auto& all_pipes() const { return pipes_; }
+    auto all_pipes() const { return pipes_.valid_indexes(); }
 
 
     bool exec_step();
     std::string exec(function& func, bool prints = false);
 
 private:
-    bool is_pipe_full(const pipe& p);
-    bool is_input_ready(const port& input);
-    bool is_output_ready(const port& output);
-    bool is_function_ready(const function& func);
+    //bool is_pipe_full(const pipe& p);
+    //bool is_input_ready(const port& input);
+    //bool is_output_ready(const port& output);
+    //bool is_function_ready(const function& func);
 
 private:
-    std::vector<function> functions_;
-    std::vector<port> ports_;
-    std::vector<pipe> pipes_;
+    vector_pool<function> functions_;
+    vector_pool<port> ports_;
+    vector_pool<pipe> pipes_;
 };
 
 

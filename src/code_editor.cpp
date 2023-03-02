@@ -75,7 +75,7 @@ renderer flow::editor()
         if (ImGui::Button("Add Function")) {
             auto added_function_id = s.add_function();
             auto [x,y] = ImGui::GetWindowSize();
-            ImNodes::SetNodeEditorSpacePos(int(added_function_id), ImVec2(x/3,y/3)); 
+            ImNodes::SetNodeEditorSpacePos(int(added_function_id), ImVec2(x/3,y/3));
         }
 
         if (ImGui::Button("Step")) {
@@ -85,13 +85,11 @@ renderer flow::editor()
         ImNodes::EditorContextSet(ctx);
         ImNodes::BeginNodeEditor();
 
-        auto max_func_id = s.all_functions().size();
-        for (size_t i=0; i<max_func_id; i++) {
+        for (auto i: s.all_functions()) {
             render_editor_function(s, function_id_t(i));
         }
 
-        auto max_link_id = s.all_pipes().size();
-        for (size_t i=0; i<max_link_id; i++) {
+        for (auto i: s.all_pipes()) {
             auto& [data, src, dest] = s.get_pipe(pipe_id_t(i));
 
             if (data) ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(255, 40, 40, 255));
