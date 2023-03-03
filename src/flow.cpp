@@ -189,7 +189,8 @@ std::string scene::exec(function& func, bool prints)
         }
     }
 
-    return result.pretty_print();
+    func.result = result.pretty_print();
+    return func.result;
 }
 
 #include <algorithm>

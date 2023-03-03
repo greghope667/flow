@@ -13,11 +13,6 @@
 
 using namespace flow;
 
-static void render_input_code(std::string& code)
-{
-    ImGui::InputTextMultiline("", &code, ImVec2(0,50), ImGuiInputTextFlags_AllowTabInput);
-}
-
 static void render_editor_function(scene& s, function_id_t id)
 {
     auto& func = s.get_function(id);
@@ -25,9 +20,13 @@ static void render_editor_function(scene& s, function_id_t id)
 
     ImNodes::BeginNodeTitleBar();
     ImGui::TextUnformatted("lambda");
+    ImGui::SameLine(125);
+    if (ImGui::Button(" > ", ImVec2(25,15))) {
+        s.exec(func, true);
+    }
     ImNodes::EndNodeTitleBar();
 
-    ImGui::PushItemWidth(120.0f);
+    ImGui::PushItemWidth(150.0f);
     for (auto input_id: func.inputs) {
         auto& input = s.get_port(input_id);
         assert(input.parent == id);
@@ -48,12 +47,16 @@ static void render_editor_function(scene& s, function_id_t id)
         ImNodes::EndInputAttribute();
     }
 
-    render_input_code(func.code);
+    ImGui::InputTextMultiline("", &func.code, ImVec2(0,50), ImGuiInputTextFlags_AllowTabInput);
+    ImGui::Text("%.20s", func.result.c_str());
+
     ImGui::PopItemWidth();
 
     if (ImGui::Button("Add input")) {
         s.add_input(id);
     }
+
+    ImGui::SameLine(75);
 
     if (ImGui::Button("Add output")) {
         s.add_output(id);
@@ -66,21 +69,48 @@ static void render_editor_function(scene& s, function_id_t id)
     ImNodes::EndNode();
 }
 
+static void render_editor_controls(scene& s)
+{
+    if (ImGui::Button("Add Function")) {
+        auto added_function_id = s.add_function();
+        auto [x,y] = ImGui::GetWindowSize();
+        ImNodes::SetNodeEditorSpacePos(int(added_function_id), ImVec2(x/3,y/3));
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Remove Selected") || ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+        if (int length = ImNodes::NumSelectedLinks(); length > 0) {
+            std::vector<int> to_remove(length);
+            ImNodes::GetSelectedLinks(to_remove.data());
+            for (auto i: to_remove) {
+                s.remove_pipe(pipe_id_t(i));
+            }
+        }
+        ImNodes::ClearLinkSelection();
+
+        if (int length = ImNodes::NumSelectedNodes(); length > 0) {
+            std::vector<int> to_remove(length);
+            ImNodes::GetSelectedNodes(to_remove.data());
+            for (auto i: to_remove) {
+                s.remove_function(function_id_t(i));
+            }
+        }
+        ImNodes::ClearNodeSelection();
+    }
+
+    if (ImGui::Button("Step")) {
+        s.exec_step();
+    }
+}
+
 renderer flow::editor()
 {
     auto ctx = ImNodes::EditorContextCreate();
     return [s=scene(), ctx] () mutable {
         ImGui::Begin("A Node Editor");
 
-        if (ImGui::Button("Add Function")) {
-            auto added_function_id = s.add_function();
-            auto [x,y] = ImGui::GetWindowSize();
-            ImNodes::SetNodeEditorSpacePos(int(added_function_id), ImVec2(x/3,y/3));
-        }
-
-        if (ImGui::Button("Step")) {
-            s.exec_step();
-        }
+        render_editor_controls(s);
 
         ImNodes::EditorContextSet(ctx);
         ImNodes::BeginNodeEditor();

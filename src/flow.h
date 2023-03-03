@@ -31,6 +31,7 @@ struct port {
 
 struct function {
     std::string code;
+    std::string result;
     std::vector<port_id_t> inputs;
     std::vector<port_id_t> outputs;
 };
@@ -62,7 +63,6 @@ public:
     pipe& get_pipe(pipe_id_t);
     void remove_pipe(pipe_id_t);
     auto all_pipes() const { return pipes_.valid_indexes(); }
-
 
     bool exec_step();
     std::string exec(function& func, bool prints = false);
